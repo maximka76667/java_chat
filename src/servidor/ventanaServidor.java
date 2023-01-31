@@ -1,26 +1,29 @@
 package servidor;
 
 import java.awt.EventQueue;
-
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-
 import java.awt.Font;
-import javax.swing.JTextField;
-import javax.swing.JTextArea;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import javax.swing.JScrollPane;
-import javax.swing.ScrollPaneConstants;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.border.EmptyBorder;
 
 public class ventanaServidor extends JFrame {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	private JTextField campoPuerto;
 	private JButton botonEncender;
@@ -34,6 +37,7 @@ public class ventanaServidor extends JFrame {
 	 */
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ventanaServidor frame = new ventanaServidor();
@@ -49,7 +53,7 @@ public class ventanaServidor extends JFrame {
 	 * Create the frame.
 	 */
 	public void encender() {
-		servidor servidor=new servidor(this);
+		servidor servidor = new servidor(this);
 		servidor.start();
 	}
 
@@ -72,7 +76,7 @@ public class ventanaServidor extends JFrame {
 		campoPuerto.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode()==10) {
+				if (e.getKeyCode() == 10) {
 					encender();
 				}
 			}

@@ -18,23 +18,23 @@ public class Hilo extends Thread {
 		this.ventana = ventana;
 	}
 
-	public void mostrar(boolean isChatVisible) {
-		ventana.getLabelservidor().setVisible(!isChatVisible);
-		ventana.getCampoServidor().setVisible(!isChatVisible);
-		ventana.getLabelPuerto().setVisible(!isChatVisible);
-		ventana.getCampoPuerto().setVisible(!isChatVisible);
-		ventana.getLabelNick().setVisible(!isChatVisible);
-		ventana.getCampoNick().setVisible(!isChatVisible);
-		ventana.getBotonConectar().setVisible(!isChatVisible);
+	public void showChat(boolean makeChatVisible) {
+		ventana.getLabelservidor().setVisible(!makeChatVisible);
+		ventana.getCampoServidor().setVisible(!makeChatVisible);
+		ventana.getLabelPuerto().setVisible(!makeChatVisible);
+		ventana.getCampoPuerto().setVisible(!makeChatVisible);
+		ventana.getLabelNick().setVisible(!makeChatVisible);
+		ventana.getCampoNick().setVisible(!makeChatVisible);
+		ventana.getBotonConectar().setVisible(!makeChatVisible);
 
-		ventana.getPanelChat().setVisible(isChatVisible);
-		ventana.getAreaChat().setVisible(isChatVisible);
-		ventana.getBotonDesconectar().setVisible(isChatVisible);
-		ventana.getLabelConectados().setVisible(isChatVisible);
-		ventana.getPanelConectados().setVisible(isChatVisible);
-		ventana.getAreaConectados().setVisible(isChatVisible);
-		ventana.getBotonEnviar().setVisible(isChatVisible);
-		ventana.getCampoEnviar().setVisible(isChatVisible);
+		ventana.getPanelChat().setVisible(makeChatVisible);
+		ventana.getAreaChat().setVisible(makeChatVisible);
+		ventana.getBotonDesconectar().setVisible(makeChatVisible);
+		ventana.getLabelConectados().setVisible(makeChatVisible);
+		ventana.getPanelConectados().setVisible(makeChatVisible);
+		ventana.getAreaConectados().setVisible(makeChatVisible);
+		ventana.getBotonEnviar().setVisible(makeChatVisible);
+		ventana.getCampoEnviar().setVisible(makeChatVisible);
 
 		ventana.setTitle("Cliente chat: nick " + ventana.getNick());
 	}
@@ -44,24 +44,21 @@ public class Hilo extends Thread {
 			try {
 				Mensaje recibido = (Mensaje) flujoentrada.readObject();
 				switch (recibido.getTipomensaje()) {
-				case CONNECTION_DECLINED:
+				case CONNECTION_REJECTED:
 					JOptionPane.showMessageDialog(null, recibido.getMensaje());
 					break;
+
 				case CONNECTION_ACCEPTED:
 					JOptionPane.showMessageDialog(null, recibido.getMensaje());
-					mostrar(true);
+					showChat(true);
 					break;
-				case SEND_NICKS:
-					ventana.getAreaConectados().setText("");
-					ArrayList<String> connectedNicks = (ArrayList<String>) recibido.getMensaje();
-					System.out.println(recibido);
-					for (String nick : connectedNicks) {
-						ventana.getAreaConectados().append(nick + "\n");
-					}
+
+				case NICKS:
+					ventana.getAreaConectados().setText((String) recibido.getMensaje());
 					break;
 
 				case CONNECTION_DISCONNECT:
-					mostrar(false);
+					showChat(false);
 					break messageReciever;
 
 				case MESSAGE:

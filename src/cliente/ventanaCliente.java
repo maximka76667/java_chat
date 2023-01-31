@@ -1,30 +1,26 @@
 package cliente;
 
 import java.awt.EventQueue;
-
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
-
-import servidor.Mensaje;
-import servidor.Mensaje.TipoMensaje;
-
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-
 import java.awt.Font;
-import javax.swing.JTextField;
-import javax.swing.JButton;
-import javax.swing.JTextArea;
-import javax.swing.JScrollPane;
-import javax.swing.ScrollPaneConstants;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.border.EmptyBorder;
+
+import common.Utils;
+import servidor.Mensaje.TipoMensaje;
 
 public class ventanaCliente extends JFrame {
 
@@ -42,8 +38,8 @@ public class ventanaCliente extends JFrame {
 	private JButton botonEnviar;
 	private JButton botonDesconectar;
 	private JButton botonConectar;
-	private int PUERTO;
-	private String servidor;
+	private int port;
+	private String hostName;
 	private String nick;
 	private Socket socket;
 	private ObjectOutputStream flujosalida;
@@ -56,6 +52,7 @@ public class ventanaCliente extends JFrame {
 	 */
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ventanaCliente frame = new ventanaCliente();
@@ -114,23 +111,28 @@ public class ventanaCliente extends JFrame {
 		botonConectar.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
+				// Take fields' values
+				hostName = campoServidor.getText();
+				port = Integer.valueOf(campoPuerto.getText());
+				nick = campoNick.getText();
+
+				// Create socket and get objectStream
 				try {
-					servidor = campoServidor.getText();
-					PUERTO = Integer.valueOf(campoPuerto.getText());
-					nick = campoNick.getText();
-					socket = new Socket(servidor, PUERTO);
+					socket = new Socket(hostName, port);
 					flujosalida = new ObjectOutputStream(socket.getOutputStream());
-					flujosalida.writeObject(new Mensaje(nick, TipoMensaje.CONNECTION_REQUESTED));
-					flujosalida.flush();
 					flujoentrada = new ObjectInputStream(socket.getInputStream());
-
-					Hilo hilo = new Hilo(flujoentrada, getthis());
-					hilo.start();
-
 				} catch (Exception e1) {
 					JOptionPane.showMessageDialog(null, e1.getMessage());
 				}
 
+				// Request connection by nick
+				Utils.respondGeneratedMessage(flujosalida, nick, TipoMensaje.CONNECTION_REQUESTED);
+
+				// Send message that user connected
+				Utils.respondGeneratedMessage(flujosalida, nick + " ha conectado\n", TipoMensaje.MESSAGE);
+
+				Hilo hilo = new Hilo(flujoentrada, getthis());
+				hilo.start();
 			}
 
 		});
@@ -145,12 +147,8 @@ public class ventanaCliente extends JFrame {
 		botonDesconectar.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				try {
-					flujosalida.writeObject(new Mensaje(nick, TipoMensaje.CONNECTION_DISCONNECT));
-					nick = null;
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
+				Utils.respondGeneratedMessage(flujosalida, nick, TipoMensaje.CONNECTION_DISCONNECT);
+				nick = null;
 			}
 		});
 
@@ -172,13 +170,10 @@ public class ventanaCliente extends JFrame {
 		contentPane.add(botonEnviar);
 
 		botonEnviar.addMouseListener(new MouseAdapter() {
+			@Override
 			public void mouseClicked(MouseEvent e) {
-				String message = campoEnviar.getText();
-				try {
-					flujosalida.writeObject(new Mensaje(nick + ": " + message + "\n", TipoMensaje.MESSAGE));
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
+				String message = nick + ": " + campoEnviar.getText() + "\n";
+				Utils.respondGeneratedMessage(flujosalida, message, TipoMensaje.MESSAGE);
 				campoEnviar.setText("");
 			}
 		});
@@ -262,11 +257,11 @@ public class ventanaCliente extends JFrame {
 	}
 
 	public int getPUERTO() {
-		return PUERTO;
+		return port;
 	}
 
 	public String getServidor() {
-		return servidor;
+		return hostName;
 	}
 
 	public String getNick() {
