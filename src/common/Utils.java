@@ -10,7 +10,7 @@ import servidor.User;
 
 public class Utils {
 
-	public static void respondMessage(ObjectOutputStream output, Mensaje message) {
+	public synchronized static void respondMessage(ObjectOutputStream output, Mensaje message) {
 		try {
 			output.writeObject(message);
 			output.flush();
@@ -19,7 +19,8 @@ public class Utils {
 		}
 	}
 
-	public static void respondGeneratedMessage(ObjectOutputStream output, Object message, TipoMensaje messageType) {
+	public synchronized static void respondGeneratedMessage(ObjectOutputStream output, Object message,
+			TipoMensaje messageType) {
 		try {
 			output.writeObject(new Mensaje(message, messageType));
 			output.flush();

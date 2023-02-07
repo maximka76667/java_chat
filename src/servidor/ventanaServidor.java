@@ -102,6 +102,7 @@ public class ventanaServidor extends JFrame {
 		contentPane.add(scrollPane);
 
 		areaServidor = new JTextArea();
+		areaServidor.setEditable(false);
 		scrollPane.setViewportView(areaServidor);
 	}
 

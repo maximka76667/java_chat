@@ -1,7 +1,6 @@
 package cliente;
 
 import java.io.ObjectInputStream;
-import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
 
@@ -39,6 +38,7 @@ public class Hilo extends Thread {
 		ventana.setTitle("Cliente chat: nick " + ventana.getNick());
 	}
 
+	@Override
 	public void run() {
 		messageReciever: while (true) {
 			try {
@@ -46,7 +46,7 @@ public class Hilo extends Thread {
 				switch (recibido.getTipomensaje()) {
 				case CONNECTION_REJECTED:
 					JOptionPane.showMessageDialog(null, recibido.getMensaje());
-					break;
+					break messageReciever;
 
 				case CONNECTION_ACCEPTED:
 					JOptionPane.showMessageDialog(null, recibido.getMensaje());
@@ -66,11 +66,12 @@ public class Hilo extends Thread {
 					break;
 
 				default:
-					break messageReciever;
+					break;
 				}
 
 			} catch (Exception e) {
 				JOptionPane.showMessageDialog(null, e.getMessage());
+				break messageReciever;
 			}
 		}
 	}

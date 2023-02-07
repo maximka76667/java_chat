@@ -31,41 +31,48 @@ public class Hilo extends Thread {
 			ObjectOutputStream salida = new ObjectOutputStream(socket.getOutputStream());
 
 			messageReceiver: while (true) {
-				Mensaje receivedMessage = (Mensaje) entrada.readObject();
-				switch (receivedMessage.getTipomensaje()) {
-				case CONNECTION_REQUESTED:
-					if (!compartida.nickExists(nick)) {
-						// Receive nick and connect new user
+
+				try {
+					Mensaje receivedMessage = (Mensaje) entrada.readObject();
+					switch (receivedMessage.getTipomensaje()) {
+					case CONNECTION_REQUESTED:
 						nick = (String) receivedMessage.getMensaje();
-						compartida.connect(nick, salida);
+						if (!compartida.nickExists(nick)) {
+							// Receive nick and connect new user
+							compartida.connect(nick, salida);
 
-						// Respond with accepted connection
-						Utils.respondGeneratedMessage(salida, "Nick correcto", TipoMensaje.CONNECTION_ACCEPTED);
-						ventana.getAreaServidor().append(nick + " ha conectado\n");
+							// Respond with accepted connection
+							Utils.respondGeneratedMessage(salida, "Nick correcto", TipoMensaje.CONNECTION_ACCEPTED);
+							ventana.getAreaServidor().append(nick + " ha conectado\n");
 
-						// Send list with updated users
+							// Send list with updated users
+							compartida.sendNicks();
+						} else {
+							// If user already exists - reject connection
+							Utils.respondGeneratedMessage(salida, "Nick incorrecto", TipoMensaje.CONNECTION_REJECTED);
+
+							// And break cycle
+							break messageReceiver;
+						}
+						break;
+
+					case CONNECTION_DISCONNECT:
+						compartida.disconnect(nick);
+						ventana.getAreaServidor().append(nick + " ha desconectado\n");
+						Utils.respondGeneratedMessage(salida, "Cliente desconectado",
+								TipoMensaje.CONNECTION_DISCONNECT);
 						compartida.sendNicks();
-					} else {
-						// If user already exists - reject connection
-						Utils.respondGeneratedMessage(salida, "Nick incorrecto", TipoMensaje.CONNECTION_REJECTED);
-
-						// And break cycle
 						break messageReceiver;
+
+					case MESSAGE:
+						compartida.sendMessageToChat(receivedMessage);
+						break;
+
+					default:
+						break;
 					}
-					break;
-
-				case CONNECTION_DISCONNECT:
-					compartida.disconnect(nick);
-					ventana.getAreaServidor().append(nick + " ha desconectado\n");
-					Utils.respondGeneratedMessage(salida, "Cliente desconectado", TipoMensaje.CONNECTION_DISCONNECT);
-					compartida.sendNicks();
-					break messageReceiver;
-
-				case MESSAGE:
-					compartida.sendMessageToChat(receivedMessage);
-					break;
-
-				default:
+				} catch (Exception e) {
+					e.printStackTrace();
 					break messageReceiver;
 				}
 			}

@@ -1,7 +1,6 @@
 package servidor;
 
 import java.io.ObjectOutputStream;
-import java.util.Objects;
 
 public class User {
 
@@ -31,11 +30,6 @@ public class User {
 	}
 
 	@Override
-	public int hashCode() {
-		return Objects.hash(nick);
-	}
-
-	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
@@ -44,7 +38,13 @@ public class User {
 		if (getClass() != obj.getClass())
 			return false;
 		User other = (User) obj;
-		return Objects.equals(nick, other.nick);
+
+		return this.nick.equals(other.getNick());
+	}
+
+	@Override
+	public String toString() {
+		return "User [nick=" + nick + ", output=" + output + "]";
 	}
 
 }
