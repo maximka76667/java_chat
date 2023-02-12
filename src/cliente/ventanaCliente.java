@@ -2,8 +2,12 @@ package cliente;
 
 import java.awt.EventQueue;
 import java.awt.Font;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -40,9 +44,9 @@ public class ventanaCliente extends JFrame {
 	private JButton botonConectar;
 	private int port;
 	private String hostName;
-	private String nick;
+	private static String nick;
 	private Socket socket;
-	private ObjectOutputStream flujosalida;
+	private static ObjectOutputStream flujosalida;
 	private ObjectInputStream flujoentrada;
 	private JScrollPane panelChat;
 	private JScrollPane panelConectados;
@@ -57,11 +61,57 @@ public class ventanaCliente extends JFrame {
 				try {
 					ventanaCliente frame = new ventanaCliente();
 					frame.setVisible(true);
+					frame.addWindowListener(new WindowListener() {
+
+						@Override
+						public void windowOpened(WindowEvent e) {
+							// TODO Auto-generated method stub
+
+						}
+
+						@Override
+						public void windowIconified(WindowEvent e) {
+							// TODO Auto-generated method stub
+
+						}
+
+						@Override
+						public void windowDeiconified(WindowEvent e) {
+							// TODO Auto-generated method stub
+
+						}
+
+						@Override
+						public void windowDeactivated(WindowEvent e) {
+							// TODO Auto-generated method stub
+
+						}
+
+						@Override
+						public void windowClosing(WindowEvent e) {
+							disconnect();
+						}
+
+						@Override
+						public void windowClosed(WindowEvent e) {
+						}
+
+						@Override
+						public void windowActivated(WindowEvent e) {
+							// TODO Auto-generated method stub
+
+						}
+					});
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 		});
+	}
+
+	public static void disconnect() {
+		Utils.respondGeneratedMessage(flujosalida, nick, TipoMensaje.CONNECTION_DISCONNECT);
+		nick = null;
 	}
 
 	/**
@@ -131,6 +181,8 @@ public class ventanaCliente extends JFrame {
 				// Send message that user connected
 				Utils.respondGeneratedMessage(flujosalida, nick + " ha conectado\n", TipoMensaje.MESSAGE);
 
+				areaChat.setText("");
+
 				Hilo hilo = new Hilo(flujoentrada, getthis());
 				hilo.start();
 			}
@@ -147,8 +199,7 @@ public class ventanaCliente extends JFrame {
 		botonDesconectar.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				Utils.respondGeneratedMessage(flujosalida, nick, TipoMensaje.CONNECTION_DISCONNECT);
-				nick = null;
+				disconnect();
 			}
 		});
 
@@ -164,6 +215,28 @@ public class ventanaCliente extends JFrame {
 		contentPane.add(campoEnviar);
 		campoEnviar.setColumns(10);
 
+		campoEnviar.addKeyListener(new KeyListener() {
+
+			@Override
+			public void keyTyped(KeyEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == 10) {
+					onSendMessage();
+				}
+			}
+		});
+
 		botonEnviar = new JButton("Enviar");
 		botonEnviar.setVisible(false);
 		botonEnviar.setBounds(696, 439, 89, 23);
@@ -172,9 +245,7 @@ public class ventanaCliente extends JFrame {
 		botonEnviar.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				String message = nick + ": " + campoEnviar.getText() + "\n";
-				Utils.respondGeneratedMessage(flujosalida, message, TipoMensaje.MESSAGE);
-				campoEnviar.setText("");
+				onSendMessage();
 			}
 		});
 
@@ -186,6 +257,7 @@ public class ventanaCliente extends JFrame {
 		contentPane.add(panelChat);
 
 		areaChat = new JTextArea();
+		areaChat.setEditable(false);
 		panelChat.setViewportView(areaChat);
 
 		panelConectados = new JScrollPane();
@@ -196,8 +268,15 @@ public class ventanaCliente extends JFrame {
 		contentPane.add(panelConectados);
 
 		areaConectados = new JTextArea();
+		areaConectados.setEditable(false);
 		panelConectados.setViewportView(areaConectados);
 
+	}
+
+	public void onSendMessage() {
+		String message = nick + ": " + campoEnviar.getText() + "\n";
+		Utils.respondGeneratedMessage(flujosalida, message, TipoMensaje.MESSAGE);
+		campoEnviar.setText("");
 	}
 
 	private ventanaCliente getthis() {

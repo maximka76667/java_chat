@@ -17,7 +17,6 @@ public class Compartida {
 	}
 
 	public synchronized boolean nickExists(String nick) {
-		System.out.println(nick);
 		return connectedUsers.contains(new User(nick, null));
 	}
 
